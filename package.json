@@ -1,6 +1,6 @@
 {
-  "name": "Weather",
-  "homepage": "https://github.com/yogevHenig/Weather",
+  "name": "weather",
+  "homepage": "https://yogevHenig.github.io/weather",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
