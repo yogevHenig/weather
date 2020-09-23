@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import WeatherCard from './Components/WeatherCard/WeatherCard';
 
-import ReactHtmlParser from 'react-html-parser';
-
-
 
 class App extends Component {
   constructor(){
@@ -48,7 +45,6 @@ class App extends Component {
       }
 
       let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
-      console.log(iconURL)
       if (index === 1){
         this.setState(
             {
@@ -78,8 +74,6 @@ class App extends Component {
   componentDidMount() {
     this.fetchDataByCity(this.state.name1,1);
     this.fetchDataByCity(this.state.name2,2);
-    // console.log('heeeelo',this.state.city1.icon)
-    // console.log(this.state.city2.icon)
   }
 
   render() {
@@ -89,7 +83,7 @@ class App extends Component {
         <header className="App-header">
           <img src={'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRfnS75QwwkgQCc01HRB3SQOQDrAbqCW4D_3g&usqp=CAU'} className="App-logo" alt="logo" />
           <p>
-            Let's See Some weather!
+            Let's See Some Weather!
           </p>
         </header>
         <WeatherCard city = { this.state.name1 }
