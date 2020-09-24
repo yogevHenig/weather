@@ -18,12 +18,8 @@ class App extends Component {
   fetchDataByCity = async (city, arr) => {
     try {
       console.log('fetch data for', city)
-      //var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
       var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
           targetUrl = `https://www.google.com/search?q=weather+${city}`
-      //let rawData = await fetch(proxyUrl + targetUrl);
-      //var origin = window.location.protocol + '//' + window.location.host;
-
 
       let rawData = await fetch(proxyUrl + targetUrl, {
   			headers: {
