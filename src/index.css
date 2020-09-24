@@ -8,3 +8,7 @@ body {
 button {
 	cursor: pointer;
 }
+
+.lg{
+  background: linear-gradient(to right, rgb(0, 101, 234), rgb(93, 230, 227));
+}

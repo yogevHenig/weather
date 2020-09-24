@@ -10,57 +10,84 @@ class App extends Component {
     this.state = {
       cities: [],
       city: [],
-      // city: {
-      //                       name: '',
-      //                       temperature: '',
-      //                       humidity: '',
-      //                       windspeed: '',
-      //                       icon: ''
-      //                     },
       input: ''
     }
 
   }
 
   fetchDataByCity = async (city, arr) => {
+    try {
+      console.log('fetch data for', city)
+      //var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
+      var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
+          targetUrl = `https://www.google.com/search?q=weather+${city}`
+      //let rawData = await fetch(proxyUrl + targetUrl);
+      //var origin = window.location.protocol + '//' + window.location.host;
 
-    var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
-        targetUrl = `https://www.google.com/search?q=weather+${city}`
-    let rawData = await fetch(proxyUrl + targetUrl);
-    let data =  await rawData.text();
-    data = data.substr(data.indexOf('Weather Result'))
-    let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
-    let temperature = data.substr(temperatureIndex + 'id="wob_ttm" style="display:none">'.length,2).split('').filter(x => x >= 0 && x <= 9).join('')
-    let humidityIndex = data.indexOf('<span id="wob_hm">')
-    let humidity = data.substr(humidityIndex + '<span id="wob_hm">'.length,2)
-    let windspeedIndex = data.indexOf('d="wob_tws">')
-    let windspeed = data.substr(windspeedIndex + 'd="wob_tws">'.length,2)
-    let iconUrlStartIndex = data.indexOf('gstatic');
-    let iconUrlEndIndex = iconUrlStartIndex
-    while (data[iconUrlEndIndex] + data[iconUrlEndIndex+1] + data[iconUrlEndIndex+2] !== 'png'){
-        iconUrlEndIndex++;
+
+      let rawData = await fetch(proxyUrl + targetUrl, {
+  			headers: {
+  			 	'Access-Control-Allow-Origin': 'https://yogevhenig.github.io/weather/'
+  			}
+  		})
+      let data =  await rawData.text();
+      if (!data.length){
+        throw Error("no data!")
+      } else {
+        console.log('data recieved')
+      }
+
+      let startIndex = data.indexOf('Weather Result')
+      if (startIndex === -1){
+        startIndex = data.indexOf('תוצאת')
+      }
+      console.log('startIndex for data is',startIndex);
+      data = data.substr(startIndex)
+      let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
+      let temperature = data.substr(temperatureIndex + 'id="wob_ttm" style="display:none">'.length,2).split('').filter(x => x >= 0 && x <= 9).join('')
+      let humidityIndex = data.indexOf('<span id="wob_hm">')
+      let humidity = data.substr(humidityIndex + '<span id="wob_hm">'.length,2)
+      let windspeedIndex = data.indexOf('d="wob_tws">')
+      let windspeed = data.substr(windspeedIndex + 'd="wob_tws">'.length,2)
+      let iconUrlStartIndex = data.indexOf('gstatic');
+      let iconUrlEndIndex = iconUrlStartIndex;
+      while (data[iconUrlEndIndex] + data[iconUrlEndIndex+1] + data[iconUrlEndIndex+2] !== 'png'){
+          iconUrlEndIndex++;
+      }
+      let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
+      const cities = arr.concat([{
+                            name: city,
+                            temperature: temperature,
+                            humidity: humidity,
+                            windspeed: windspeed,
+                            icon: iconURL
+                          }])
+      console.log('finished', city);
+      return cities
+    }
+    catch (err){
+      console.log(err)
     }
 
-    let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
-    const cities = arr.concat([{
-                          name: city,
-                          temperature: temperature,
-                          humidity: humidity,
-                          windspeed: windspeed,
-                          icon: iconURL
-                        }])
-    return cities
 }
 
   componentDidMount() {
-    this.fetchDataByCity("Tel-Aviv",[]).then(cities => {
+    console.log('Lets bring some data!')
+    this.fetchDataByCity("Tel-Aviv",[])
+    .then(cities => {
+      if (!cities){
+        throw Error('noData')
+      }
       this.fetchDataByCity("New-York",cities)
       .then (cities => {
+        if (!cities){
+          throw Error('noData')
+        }
         this.setState({ cities })
       })
     })
-    //cities = this.fetchDataByCity("New-York",cities);
-    //this.setState({ cities })
+    .catch(console.log)
+    console.log('Done!')
   }
 
   onInputChange = (event) => {

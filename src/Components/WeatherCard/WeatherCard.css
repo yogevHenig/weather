@@ -1,3 +1,7 @@
 .hover-black:hover {
 	background-color: #000 !important;
 }
+
+.wc{
+	background: linear-gradient(to right, rgb(0, 101, 234), rgb(93, 230, 227));
+}

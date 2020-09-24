@@ -3,7 +3,7 @@ import './WeatherCard.css';
 
 const WeatherCard = ( {city, temperature, humidity, windspeed, iconURL}) => {
   return (
-    <article className="br3 ba b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center">
+    <article className="br3 ba b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center lg">
       <main className="pa4 black-80">
         <div className="measure ">
           <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
