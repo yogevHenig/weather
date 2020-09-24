@@ -41,6 +41,9 @@ class App extends Component {
       if (startIndex === -1){
         startIndex = data.indexOf('תוצאת')
       }
+      if (startIndex === -1){
+        throw Error("wrong data!")
+      }
       console.log('startIndex for data is',startIndex);
       data = data.substr(startIndex)
       let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
@@ -97,8 +100,12 @@ class App extends Component {
   onButtonSubmit = (event) =>{
     this.fetchDataByCity(this.state.input,[])
     .then(city => {
+      if (!city){
+        throw Error('problem with fetching the data')
+      }
        this.setState({ city })
      })
+     .catch(console.log)
     }
 
   removeCity = () => {
