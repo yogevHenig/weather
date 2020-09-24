@@ -1,80 +1,85 @@
 import React, { Component } from 'react';
 import './App.css';
 import WeatherCard from './Components/WeatherCard/WeatherCard';
+import SearchLocation from './Components/SearchLocation/SearchLocation';
 
 
 class App extends Component {
   constructor(){
     super();
     this.state = {
-      name1: 'Tel-Aviv',
-      name2: 'New-York',
-      city1 : {
-        temperature: '',
-        Humidity: '',
-        Windspeed: '',
-        icon: '',
-      },
-      city2 : {
-        temperature: '',
-        Humidity: '',
-        Windspeed: '',
-        icon: ''
-      }
-    };
+      cities: [],
+      city: [],
+      // city: {
+      //                       name: '',
+      //                       temperature: '',
+      //                       humidity: '',
+      //                       windspeed: '',
+      //                       icon: ''
+      //                     },
+      input: ''
+    }
+
   }
 
-  fetchDataByCity = (city, index) => {
+  fetchDataByCity = async (city, arr) => {
+
     var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
         targetUrl = `https://www.google.com/search?q=weather+${city}`
-    fetch(proxyUrl + targetUrl)
-    .then(res => res.text())
-    .then(data => {
-      data = data.substr(data.indexOf('Weather Result'))
-      let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
-      let temperature = data.substr(temperatureIndex + 'id="wob_ttm" style="display:none">'.length,2)
-      let humidityIndex = data.indexOf('<span id="wob_hm">')
-      let humidity = data.substr(humidityIndex + '<span id="wob_hm">'.length,2)
-      let windspeedIndex = data.indexOf('d="wob_tws">')
-      let windspeed = data.substr(windspeedIndex + 'd="wob_tws">'.length,2)
-
-      let iconUrlStartIndex = data.indexOf('gstatic');
-      let iconUrlEndIndex = iconUrlStartIndex
-      while (data[iconUrlEndIndex] + data[iconUrlEndIndex+1] + data[iconUrlEndIndex+2] !== 'png'){
+    let rawData = await fetch(proxyUrl + targetUrl);
+    let data =  await rawData.text();
+    data = data.substr(data.indexOf('Weather Result'))
+    let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
+    let temperature = data.substr(temperatureIndex + 'id="wob_ttm" style="display:none">'.length,2).split('').filter(x => x >= 0 && x <= 9).join('')
+    let humidityIndex = data.indexOf('<span id="wob_hm">')
+    let humidity = data.substr(humidityIndex + '<span id="wob_hm">'.length,2)
+    let windspeedIndex = data.indexOf('d="wob_tws">')
+    let windspeed = data.substr(windspeedIndex + 'd="wob_tws">'.length,2)
+    let iconUrlStartIndex = data.indexOf('gstatic');
+    let iconUrlEndIndex = iconUrlStartIndex
+    while (data[iconUrlEndIndex] + data[iconUrlEndIndex+1] + data[iconUrlEndIndex+2] !== 'png'){
         iconUrlEndIndex++;
-      }
+    }
 
-      let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
-      if (index === 1){
-        this.setState(
-            {
-              city1 : {
-                temperature: temperature,
-                humidity: humidity,
-                windspeed: windspeed,
-                icon: iconURL
-              }
-            }
-        )
-      } else {
-        this.setState(
-            {
-              city2 : {
-                temperature: temperature,
-                humidity: humidity,
-                windspeed: windspeed,
-                icon: iconURL
-              }
-            }
-        )
-      }
-    })
-  }
+    let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
+    const cities = arr.concat([{
+                          name: city,
+                          temperature: temperature,
+                          humidity: humidity,
+                          windspeed: windspeed,
+                          icon: iconURL
+                        }])
+    return cities
+}
 
   componentDidMount() {
-    this.fetchDataByCity(this.state.name1,1);
-    this.fetchDataByCity(this.state.name2,2);
+    this.fetchDataByCity("Tel-Aviv",[]).then(cities => {
+      this.fetchDataByCity("New-York",cities)
+      .then (cities => {
+        this.setState({ cities })
+      })
+    })
+    //cities = this.fetchDataByCity("New-York",cities);
+    //this.setState({ cities })
   }
+
+  onInputChange = (event) => {
+    this.setState({ input: event.target.value })
+  }
+
+  onButtonSubmit = (event) =>{
+    this.fetchDataByCity(this.state.input,[])
+    .then(city => {
+       this.setState({ city })
+     })
+    }
+
+  removeCity = () => {
+    const city = this.state.city;
+    city.pop();
+    this.setState({ city })
+  }
+
 
   render() {
     return (
@@ -86,18 +91,34 @@ class App extends Component {
             Let's See Some Weather!
           </p>
         </header>
-        <WeatherCard city = { this.state.name1 }
-          temperature = {this.state.city1.temperature}
-          humidity = {this.state.city1.humidity}
-          windspeed = {this.state.city1.windspeed}
-          iconURL = {this.state.city1.icon}
-        />
-        <WeatherCard city = { this.state.name2 }
-          temperature = {this.state.city2.temperature}
-          humidity = {this.state.city2.humidity}
-          windspeed = {this.state.city2.windspeed}
-          iconURL = {this.state.city2.icon}
-        />
+        <div className="AppBody">
+          <WeatherCard city = { (this.state.cities[0]) ? (this.state.cities[0]).name : ''  }
+            temperature = { (this.state.cities[0]) ? (this.state.cities[0]).temperature : ''}
+            humidity = { (this.state.cities[0]) ? this.state.cities[0].humidity : ''}
+            windspeed = { (this.state.cities[0]) ? this.state.cities[0].windspeed: ''}
+            iconURL = { (this.state.cities[0]) ? this.state.cities[0].icon : ''}
+          />
+          <WeatherCard city = { (this.state.cities[1]) ? (this.state.cities[1]).name : ''  }
+            temperature = {(this.state.cities[1]) ? (this.state.cities[1]).temperature : ''}
+            humidity = { (this.state.cities[1]) ? this.state.cities[1].humidity : ''}
+            windspeed = { (this.state.cities[1]) ? this.state.cities[1].windspeed: ''}
+            iconURL = { (this.state.cities[1]) ? this.state.cities[1].icon : ''}
+          />
+        </div>
+          <SearchLocation onButtonSubmit = { this.onButtonSubmit }  onInputChange = { this.onInputChange } />
+          {
+            this.state.city.length !== 0 ?
+              <div>
+                <WeatherCard city = { (this.state.city[0]) ? (this.state.city[0]).name : ''  }
+                  temperature = {(this.state.city[0]) ? (this.state.city[0]).temperature : ''}
+                  humidity = { (this.state.city[0]) ? this.state.city[0].humidity : ''}
+                  windspeed = { (this.state.city[0]) ? this.state.city[0].windspeed: ''}
+                  iconURL = { (this.state.city[0]) ? this.state.city[0].icon : ''}
+                />
+              </div>
+              :
+              <div></div>
+          }
       </div>
     );
   }
