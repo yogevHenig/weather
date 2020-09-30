@@ -9,18 +9,17 @@ class App extends Component {
     super();
     this.state = {
       cities: [],
-      city: [],
+      city: undefined,
       input: ''
     }
 
   }
 
-  fetchDataByCity = async (city, arr) => {
+  fetchDataByCity = async (city) => {
+    console.log('fetch data for', city)
+    var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
+        targetUrl = `https://www.google.com/search?q=weather+${city}`
     try {
-      console.log('fetch data for', city)
-      var proxyUrl = 'https://cors-anywhere.herokuapp.com/',
-          targetUrl = `https://www.google.com/search?q=weather+${city}`
-
       let rawData = await fetch(proxyUrl + targetUrl, {
   			headers: {
   			 	'Access-Control-Allow-Origin': 'https://yogevhenig.github.io/weather/'
@@ -29,9 +28,9 @@ class App extends Component {
       let data =  await rawData.text();
       if (!data.length){
         throw Error("no data!")
-      } else {
-        console.log('data recieved')
       }
+
+      console.log('data recieved')
 
       let startIndex = data.indexOf('Weather Result')
       if (startIndex === -1){
@@ -40,8 +39,9 @@ class App extends Component {
       if (startIndex === -1){
         throw Error("wrong data!")
       }
-      console.log('startIndex for data is',startIndex);
+
       data = data.substr(startIndex)
+
       let temperatureIndex = data.indexOf('id="wob_ttm" style="display:none">')
       let temperature = data.substr(temperatureIndex + 'id="wob_ttm" style="display:none">'.length,2).split('').filter(x => x >= 0 && x <= 9).join('')
       let humidityIndex = data.indexOf('<span id="wob_hm">')
@@ -49,20 +49,18 @@ class App extends Component {
       let windspeedIndex = data.indexOf('d="wob_tws">')
       let windspeed = data.substr(windspeedIndex + 'd="wob_tws">'.length,2)
       let iconUrlStartIndex = data.indexOf('gstatic');
-      let iconUrlEndIndex = iconUrlStartIndex;
-      while (data[iconUrlEndIndex] + data[iconUrlEndIndex+1] + data[iconUrlEndIndex+2] !== 'png'){
-          iconUrlEndIndex++;
-      }
-      let iconURL = data.substr(iconUrlStartIndex, iconUrlEndIndex - iconUrlStartIndex + 3);
-      const cities = arr.concat([{
-                            name: city,
-                            temperature: temperature,
-                            humidity: humidity,
-                            windspeed: windspeed,
-                            icon: iconURL
-                          }])
+      let iconUrlEndIndex = data.substr(iconUrlStartIndex).indexOf('png')
+      let iconURL = data.substring(iconUrlStartIndex, iconUrlEndIndex + iconUrlStartIndex + 3); // 3 for the 'png'
+
+      const result = {
+                    name: city,
+                    temperature: temperature,
+                    humidity: humidity,
+                    windspeed: windspeed,
+                    icon: iconURL
+                  }
       console.log('finished', city);
-      return cities
+      return result
     }
     catch (err){
       console.log(err)
@@ -70,46 +68,21 @@ class App extends Component {
 
 }
 
-  componentDidMount() {
-    console.log('Lets bring some data!')
-    this.fetchDataByCity("Tel-Aviv",[])
-    .then(cities => {
-      if (!cities){
-        throw Error('noData')
-      }
-      this.fetchDataByCity("New-York",cities)
-      .then (cities => {
-        if (!cities){
-          throw Error('noData')
-        }
-        this.setState({ cities })
-      })
-    })
-    .catch(console.log)
-    console.log('Done!')
+  async componentDidMount()  {
+    let city1 = await this.fetchDataByCity("Tel-Aviv");
+    let city2 = await this.fetchDataByCity("New-York");
+    let cities = [ city1, city2 ]
+    this.setState({ cities });
   }
 
   onInputChange = (event) => {
     this.setState({ input: event.target.value })
   }
 
-  onButtonSubmit = (event) =>{
-    this.fetchDataByCity(this.state.input,[])
-    .then(city => {
-      if (!city){
-        throw Error('problem with fetching the data')
-      }
-       this.setState({ city })
-     })
-     .catch(console.log)
-    }
-
-  removeCity = () => {
-    const city = this.state.city;
-    city.pop();
+  onButtonSubmit = async (event) =>{
+    let city = await this.fetchDataByCity(this.state.input);
     this.setState({ city })
-  }
-
+    }
 
   render() {
     return (
@@ -121,29 +94,36 @@ class App extends Component {
             Let's See Some Weather!
           </p>
         </header>
-        <div className="AppBody">
-          <WeatherCard city = { (this.state.cities[0]) ? (this.state.cities[0]).name : ''  }
-            temperature = { (this.state.cities[0]) ? (this.state.cities[0]).temperature : ''}
-            humidity = { (this.state.cities[0]) ? this.state.cities[0].humidity : ''}
-            windspeed = { (this.state.cities[0]) ? this.state.cities[0].windspeed: ''}
-            iconURL = { (this.state.cities[0]) ? this.state.cities[0].icon : ''}
-          />
-          <WeatherCard city = { (this.state.cities[1]) ? (this.state.cities[1]).name : ''  }
-            temperature = {(this.state.cities[1]) ? (this.state.cities[1]).temperature : ''}
-            humidity = { (this.state.cities[1]) ? this.state.cities[1].humidity : ''}
-            windspeed = { (this.state.cities[1]) ? this.state.cities[1].windspeed: ''}
-            iconURL = { (this.state.cities[1]) ? this.state.cities[1].icon : ''}
-          />
-        </div>
+    	  		{
+              this.state.cities.length === 0 ?
+                <h1>Loading...</h1>
+              :
+              <div className="AppBody">
+              {
+                this.state.cities.map((city , i ) => {
+                  return (
+                      <WeatherCard
+                        key = { i }
+                        city = { this.state.cities[i].name }
+                        temperature = { this.state.cities[i].temperature }
+                        humidity = { this.state.cities[i].humidity }
+                        windspeed = { this.state.cities[i].windspeed }
+                        iconURL = { this.state.cities[i].icon }
+                      />
+                  )
+                })
+              }
+              </div>
+      			}
           <SearchLocation onButtonSubmit = { this.onButtonSubmit }  onInputChange = { this.onInputChange } />
           {
-            this.state.city.length !== 0 ?
+            this.state.city !== undefined ?
               <div>
-                <WeatherCard city = { (this.state.city[0]) ? (this.state.city[0]).name : ''  }
-                  temperature = {(this.state.city[0]) ? (this.state.city[0]).temperature : ''}
-                  humidity = { (this.state.city[0]) ? this.state.city[0].humidity : ''}
-                  windspeed = { (this.state.city[0]) ? this.state.city[0].windspeed: ''}
-                  iconURL = { (this.state.city[0]) ? this.state.city[0].icon : ''}
+                <WeatherCard city = { this.state.city.name }
+                  temperature = { this.state.city.temperature }
+                  humidity = { this.state.city.humidity}
+                  windspeed = { this.state.city.windspeed }
+                  iconURL = { this.state.city.icon}
                 />
               </div>
               :
