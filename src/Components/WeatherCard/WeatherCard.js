@@ -1,5 +1,4 @@
 import React from 'react';
-import './WeatherCard.css';
 
 const WeatherCard = ( {city, temperature, humidity, windspeed, iconURL}) => {
   return (

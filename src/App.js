@@ -12,7 +12,6 @@ class App extends Component {
       city: undefined,
       input: ''
     }
-
   }
 
   fetchDataByCity = async (city) => {
@@ -52,16 +51,16 @@ class App extends Component {
       let iconUrlEndIndex = data.substr(iconUrlStartIndex).indexOf('png')
       let iconURL = data.substring(iconUrlStartIndex, iconUrlEndIndex + iconUrlStartIndex + 3); // 3 for the 'png'
 
-      const result = {
-                    name: city,
-                    temperature: temperature,
-                    humidity: humidity,
-                    windspeed: windspeed,
-                    icon: iconURL
-                  }
       console.log('finished', city);
-      return result
-    }
+
+      return {
+                name: city,
+                temperature: temperature,
+                humidity: humidity,
+                windspeed: windspeed,
+                icon: iconURL
+              }
+    }// end of try
     catch (err){
       console.log(err)
     }

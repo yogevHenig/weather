@@ -1,5 +1,4 @@
 import React from 'react';
-import './SearchLocation.css'
 
 const SearchLocation = ({ onInputChange, onButtonSubmit}) => {
 	return (
